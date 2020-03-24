@@ -3,6 +3,7 @@ package com.forestsoftware.receipe.controller;
 
 import com.forestsoftware.receipe.model.bookModel;
 import com.forestsoftware.receipe.service.UserDetailsImpl;
+import com.forestsoftware.receipe.service.UserDetailsServiceImpl;
 import com.forestsoftware.receipe.service.bookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +43,12 @@ public class bookController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
+    public ResponseEntity create(@Valid @RequestBody bookModel book, Authentication authentication) {
 
-    public ResponseEntity create(@Valid @RequestBody bookModel book) {
+        UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
+
+        book.setUser(userDetails.getId());
+
         return ResponseEntity.ok(bookService.save(book));
     }
 
@@ -91,7 +96,10 @@ public class bookController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Map<String,Object>>deleteBook(@PathVariable Long id){
+    public ResponseEntity<Map<String,Object>>deleteBook(@PathVariable Long id,Authentication authentication){
+        Optional<bookModel>book = bookService.findById(id);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
         Map<String, Object>errorMap = new HashMap<>();
 
         System.out.println("The id i'm looking for: ============"+id);
@@ -105,7 +113,11 @@ public class bookController {
             return new ResponseEntity<Map<String, Object>>(errorMap, HttpStatus.BAD_REQUEST);
 
         }
-        Optional<bookModel>book = bookService.findById(id);
+        if(userDetails.getId() !=  book.get().getUser()){
+            errorMap.put("error",false);
+            errorMap.put("message",String.format("You are not authorized to delete %s ",book.get().getTitle()));
+            return new ResponseEntity<>(errorMap,HttpStatus.UNAUTHORIZED);
+        }
         bookService.deleteById(id);
         errorMap.put("error",false);
         errorMap.put("message",String.format("%s had been deleted",book.get().getTitle()));
