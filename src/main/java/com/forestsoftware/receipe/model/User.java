@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(	name = "users",
+@Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "username"),
                 @UniqueConstraint(columnNames = "email")
@@ -34,11 +34,23 @@ public class User {
     private String password;
 
 
+    @Column(name = "isVerified", nullable = false)
+    public boolean isVerified = false;
+    //    private Boolean isVerified;
+    @Column(name = "isActive", nullable = false)
+    public boolean isActive = true;
+
+
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(	name = "user_roles",
+    @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+
+//    @ManyToOne
+//    @JoinColumn
+//    private bookModel bookModel;
 
     public User() {
     }
@@ -84,6 +96,23 @@ public class User {
     public Set<Role> getRoles() {
         return roles;
     }
+
+    public Boolean getVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(Boolean verified) {
+        isVerified = verified;
+    }
+
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;

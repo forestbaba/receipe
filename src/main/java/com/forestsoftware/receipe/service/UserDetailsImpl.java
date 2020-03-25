@@ -2,6 +2,7 @@ package com.forestsoftware.receipe.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.forestsoftware.receipe.model.User;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,17 +21,20 @@ public class UserDetailsImpl implements UserDetails {
     private Long id;
     private String username;
     private String email;
+    private Boolean isActive;
     private Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(Long id,
                            String username,
                            String email,
                            String password,
+                           Boolean isActive,
                            List<GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.isActive = isActive;
         this.authorities = authorities;
     }
 
@@ -44,6 +48,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getIsActive(),
                 authorities);
     }
 
@@ -91,6 +96,9 @@ public class UserDetailsImpl implements UserDetails {
         return true;
     }
 
+    public boolean getIsActive(){
+        return isActive;
+    }
 
     @Override
     public boolean equals(Object o) {

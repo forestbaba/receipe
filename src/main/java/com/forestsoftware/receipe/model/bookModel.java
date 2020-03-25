@@ -6,11 +6,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Data
@@ -27,6 +25,10 @@ public class bookModel {
     private String author;
     private String isbn;
     private String year;
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private Set<User> users;
+
     private Long user;
 
     @CreationTimestamp
