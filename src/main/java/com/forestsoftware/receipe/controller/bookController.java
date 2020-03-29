@@ -1,19 +1,22 @@
 package com.forestsoftware.receipe.controller;
 
 
+import com.forestsoftware.receipe.exception.ResourceNotFoundException;
+import com.forestsoftware.receipe.model.User;
 import com.forestsoftware.receipe.model.bookModel;
+import com.forestsoftware.receipe.repository.UserRepository;
+import com.forestsoftware.receipe.repository.bookRepository;
 import com.forestsoftware.receipe.service.UserDetailsImpl;
-import com.forestsoftware.receipe.service.UserDetailsServiceImpl;
 import com.forestsoftware.receipe.service.bookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RestController
 @RequestMapping("/api/v1/books")
@@ -31,6 +35,11 @@ public class bookController {
 
     private final bookService bookService;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    bookRepository bookRepository;
 
     @GetMapping
     public ResponseEntity<List<bookModel>> getAllBooks(){
@@ -41,15 +50,19 @@ public class bookController {
 //        return "Hello from this spring";
 //    }
 
-    @PostMapping
+    @PostMapping("/addBook")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity create(@Valid @RequestBody bookModel book, Authentication authentication) {
 
         UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
 
-        book.setUser(userDetails.getId());
+        return userRepository.findById(userDetails.getId()).map(user ->{
+            book.setUser(user);
 
-        return ResponseEntity.ok(bookService.save(book));
+
+            return ResponseEntity.ok( bookService.save(book));
+        }).orElseThrow(()-> new ResourceNotFoundException(String.format("User not found")));
+
     }
 
     @GetMapping("/{id}")
@@ -76,7 +89,7 @@ public class bookController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Optional<bookModel> bookModel1 = bookService.findById(bookid);
 
-        if (bookModel.getUser() != userDetails.getId()){
+        if (bookModel1.get().getUser().toString() != userDetails.getId().toString()){
            Map<String, Object> errorStatus = new HashMap<String,Object>();
            errorStatus.put("error",true);
            errorStatus.put("message","Your are not authorized to edit this book");
@@ -89,7 +102,7 @@ public class bookController {
         bookModel2.setYear(bookModel.getYear());
         bookModel2.setDateCreated(bookModel1.get().getDateCreated());
         bookModel2.setId(bookModel1.get().getId());
-        bookModel2.setUser(userDetails.getId());
+        bookModel2.setUser(bookModel1.get().getUser());
 
         return ResponseEntity.ok(bookService.save(bookModel2));
     }
@@ -113,7 +126,7 @@ public class bookController {
             return new ResponseEntity<Map<String, Object>>(errorMap, HttpStatus.BAD_REQUEST);
 
         }
-        if(userDetails.getId() !=  book.get().getUser()){
+        if(userDetails.getId().toString() !=  book.get().getUser().toString()){
             errorMap.put("error",false);
             errorMap.put("message",String.format("You are not authorized to delete %s ",book.get().getTitle()));
             return new ResponseEntity<>(errorMap,HttpStatus.UNAUTHORIZED);
@@ -123,6 +136,20 @@ public class bookController {
         errorMap.put("message",String.format("%s had been deleted",book.get().getTitle()));
 
         return new ResponseEntity<>(errorMap, HttpStatus.OK);
+
+    }
+
+    @GetMapping("/getUserBooks/{userId}")
+    @PreAuthorize("hasRole('USER')")
+    public Page<bookModel> getAllUsersBook(@PathVariable Long userId, Pageable pageable){
+
+//
+//        bookModel user = new bookModel();
+//         userRepository.findById(userId).map(user->{
+//             user.set(user);
+//
+//        });
+        return bookRepository.findByUserId(userId,pageable);
 
     }
 }

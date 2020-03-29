@@ -1,9 +1,12 @@
 package com.forestsoftware.receipe.service;
 
 
+import com.forestsoftware.receipe.model.User;
 import com.forestsoftware.receipe.model.bookModel;
 import com.forestsoftware.receipe.repository.bookRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,4 +36,8 @@ public class bookService {
     public void deleteById(Long bookId){
         bookRepository.deleteById(bookId);
     }
+
+//    public Page<bookModel> findByUser(User user, Pageable pageable){
+//      return   bookRepository.findByUser(user,pageable);
+//    }
 }

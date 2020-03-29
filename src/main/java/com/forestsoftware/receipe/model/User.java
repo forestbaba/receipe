@@ -6,6 +6,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -47,7 +48,28 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
+//    @OneToMany(mappedBy = "user")
+//    private List<bookModel> books;
 
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+//    public List<bookModel> getBooks() {
+//        return books;
+//    }
+
+//    public void setBooks(List<bookModel> books) {
+//        this.books = books;
+//    }
 //    @ManyToOne
 //    @JoinColumn
 //    private bookModel bookModel;
